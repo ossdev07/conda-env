@@ -2,16 +2,27 @@ language: python
 python:
 - '2.7'
 - '3.4'
+arch:
+- amd64
+- arm64
 install:
-- if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then wget https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh
-  -O miniconda.sh; else wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
-  -O miniconda.sh; fi
-- bash miniconda.sh -b -p $HOME/miniconda
+- if [[ "${TRAVIS_CPU_ARCH}" == "arm64" ]]; then
+    wget -q "https://github.com/Archiconda/build-tools/releases/download/0.2.3/Archiconda3-0.2.3-Linux-aarch64.sh" -O archiconda.sh;
+    chmod +x archiconda.sh;
+    bash archiconda.sh -b -p $HOME/miniconda;
+    SUDO=sudo;
+    $SUDO cp -r $HOME/miniconda/bin/* /usr/bin/;
+  else
+    if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then wget https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh;
+    -O miniconda.sh; else wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh;
+    -O miniconda.sh; fi;
+    bash miniconda.sh -b -p $HOME/miniconda
+  fi
 - export PATH="$HOME/miniconda/bin:$PATH"
 - hash -r
-- conda config --set always_yes yes
-- conda --version
-- conda install anaconda-client nbformat mock nose
+- $SUDO conda config --set always_yes yes
+- $SUDO conda --version
+- $SUDO conda install anaconda-client nbformat mock nose
 - if [[ "$PYCOSAT" ]]; then conda install pycosat=$PYCOSAT; fi
 - python setup.py install
 script:
